@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codex di Campagna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#181f2b;
+    --ink-2:#212a3a;
+    --ink-3:#2a3547;
+    --parchment:#efe6cf;
+    --parchment-dim:#c9bd9e;
+    --gold:#c9a24b;
+    --gold-dim:#8f7434;
+    --wax:#a23f3c;
+    --wax-soft:#d9827f;
+    --moss:#5c8064;
+    --moss-soft:#a8c6ae;
+    --slate:#7c8a9c;
+    --text:#ece7da;
+    --text-dim:#a9a894;
+    --line:#3a465a;
+    --font-display: 'Cormorant Garamond', serif;
+    --font-body: 'Inter', -apple-system, sans-serif;
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--font-body);
+    font-size:15px;
+    line-height:1.5;
+  }
+  ::selection{ background:var(--gold-dim); color:var(--ink); }
+  h1,h2,h3,h4{ font-family:var(--font-display); font-weight:600; margin:0; color:var(--parchment); }
+  a{color:inherit;}
+  button{ font-family:var(--font-body); cursor:pointer; touch-action:manipulation; }
+  textarea, input, select{ font-family:var(--font-body); }
+  *:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  @media (prefers-reduced-motion: reduce){ *{ transition:none !important; animation:none !important; } }
+
+  /* ---------- layout ---------- */
+  #app{ display:flex; flex-direction:column; height:100vh; }
+  header.top{
+    display:flex; align-items:center; gap:20px;
+    padding:12px 22px; background:var(--ink-2);
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+    flex-wrap:wrap;
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand .glyph{ font-size:22px; }
+  #campaignTitle{
+    font-family:var(--font-display); font-size:22px; font-weight:700;
+    color:var(--gold); letter-spacing:.3px; outline:none; min-width:80px;
+    border-bottom:1px dashed transparent; padding:1px 2px;
+  }
+  #campaignTitle:hover, #campaignTitle:focus{ border-bottom-color:var(--gold-dim); }
+  .search-wrap{ position:relative; flex:1; min-width:200px; max-width:420px; }
+  #globalSearch{
+    width:100%; background:var(--ink-3); border:1px solid var(--line); color:var(--text);
+    padding:8px 12px; border-radius:var(--radius); font-size:13.5px;
+  }
+  #globalSearch::placeholder{ color:var(--text-dim); }
+  .search-results{
+    position:absolute; top:calc(100% + 6px); left:0; right:0;
+    background:var(--ink-3); border:1px solid var(--line); border-radius:var(--radius);
+    max-height:340px; overflow-y:auto; z-index:60; box-shadow:0 10px 28px rgba(0,0,0,.45);
+    display:none;
+  }
+  .search-results.show{ display:block; }
+  .search-results .sr-item{
+    display:flex; align-items:center; gap:8px; padding:9px 12px; font-size:13.5px;
+    border-bottom:1px solid var(--line); background:none; border-left:none; border-right:none; border-top:none;
+    color:var(--text); width:100%; text-align:left;
+  }
+  .search-results .sr-item:last-child{ border-bottom:none; }
+  .search-results .sr-item:hover{ background:var(--ink-2); }
+  .sr-type{ font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); margin-left:auto; }
+  .search-empty{ padding:12px; color:var(--text-dim); font-size:13px; }
+
+  .cal-widget{
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--parchment-dim);
+    background:var(--ink-3); border:1px solid var(--line); border-radius:var(--radius); padding:6px 10px;
+    white-space:nowrap;
+  }
+  .cal-widget button{ background:none; border:1px solid var(--line); color:var(--text-dim); border-radius:var(--radius); padding:2px 7px; font-size:12px; }
+  .cal-widget button:hover{ color:var(--gold); border-color:var(--gold-dim); }
+
+  .top-actions{ display:flex; gap:8px; }
+
+  .shell{ flex:1; display:flex; min-height:0; }
+  nav.sidebar{
+    width:190px; flex-shrink:0; background:var(--ink-2); border-right:1px solid var(--line);
+    padding:14px 10px; display:flex; flex-direction:column; gap:2px; overflow-y:auto;
+  }
+  .nav-btn{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:var(--radius);
+    background:none; border:none; color:var(--text-dim); text-align:left; font-size:13.5px;
+    letter-spacing:.02em;
+  }
+  .nav-btn .n-ic{ font-size:15px; width:18px; text-align:center; }
+  .nav-btn:hover{ background:var(--ink-3); color:var(--text); }
+  .nav-btn.active{ background:var(--ink-3); color:var(--gold); box-shadow:inset 2px 0 0 var(--gold); }
+  .nav-sep{ height:1px; background:var(--line); margin:10px 4px; }
+
+  main#view{ flex:1; overflow-y:auto; padding:26px 30px 60px; min-width:0; }
+
+  .section-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+  .section-head h2{ font-size:28px; display:flex; align-items:center; gap:10px; }
+  .section-head .sub{ color:var(--text-dim); font-size:13px; margin-top:4px; }
+
+  .btn{
+    background:var(--ink-3); border:1px solid var(--line); color:var(--text);
+    padding:8px 14px; border-radius:var(--radius); font-size:13px; font-weight:500;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn:hover{ border-color:var(--gold-dim); color:var(--gold); }
+  .btn-primary{ background:var(--gold-dim); border-color:var(--gold-dim); color:#1a1305; font-weight:600; }
+  .btn-primary:hover{ background:var(--gold); border-color:var(--gold); color:#1a1305; }
+  .btn-danger{ border-color:var(--wax); color:var(--wax-soft); }
+  .btn-danger:hover{ background:var(--wax); color:#fff; }
+  .btn-ghost{ background:none; border:1px solid transparent; color:var(--text-dim); }
+  .btn-ghost:hover{ color:var(--gold); }
+  .btn-sm{ padding:4px 9px; font-size:12px; }
+  .icon-btn{ background:none; border:none; color:var(--text-dim); font-size:14px; padding:4px 6px; border-radius:var(--radius); }
+  .icon-btn:hover{ color:var(--gold); background:var(--ink-3); }
+
+  .lore-tabs{ display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+  .lore-tab{ background:var(--ink-2); border:1px solid var(--line); color:var(--text-dim); padding:7px 14px; border-radius:20px; font-size:13px; }
+  .lore-tab.active{ background:var(--gold-dim); border-color:var(--gold-dim); color:#1a1305; font-weight:600; }
+  .lore-tab:hover:not(.active){ color:var(--gold); }
+  .group-section{ margin-bottom:28px; }
+  .group-title{ display:flex; align-items:baseline; gap:9px; font-size:19px; color:var(--parchment); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--line); }
+  .group-dot{ width:11px; height:11px; border-radius:50%; display:inline-block; flex-shrink:0; border:1px solid rgba(0,0,0,.35); }
+  .group-count{ font-family:var(--font-body); font-size:12px; color:var(--text-dim); font-weight:500; }
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:14px; }
+  .card{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; display:flex; flex-direction:column; gap:8px; cursor:pointer;
+    position:relative; border-top:2px solid var(--gold-dim);
+  }
+  .card:hover{ border-color:var(--gold-dim); background:var(--ink-3); }
+  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .card-title{ font-family:var(--font-display); font-size:19px; color:var(--parchment); font-weight:600; line-height:1.25; }
+  .card-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .card-badges{ display:flex; flex-wrap:wrap; gap:5px; }
+  .card-excerpt{ color:var(--text-dim); font-size:12.5px; line-height:1.5; }
+  .card-thumb{ margin:-14px -16px 2px; border-bottom:1px solid var(--line); overflow:hidden; max-height:140px; background:var(--ink); }
+  .card-thumb img{ width:100%; display:block; max-height:140px; object-fit:cover; }
+
+  .tag{ display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px; background:var(--ink-3); color:var(--text-dim); border:1px solid var(--line); white-space:nowrap; }
+  .tag.tone-moss{ background:rgba(92,128,100,.22); color:var(--moss-soft); border-color:var(--moss); }
+  .tag.tone-wax{ background:rgba(162,63,60,.22); color:var(--wax-soft); border-color:var(--wax); }
+  .tag.tone-gold{ background:rgba(201,162,75,.2); color:var(--gold); border-color:var(--gold-dim); }
+  .tag.tone-slate{ background:rgba(124,138,156,.18); color:var(--slate); border-color:var(--slate); }
+
+  .chip{
+    display:inline-flex; align-items:center; gap:5px; background:var(--ink-3); border:1px solid var(--line);
+    color:var(--parchment); padding:5px 11px; border-radius:20px; font-size:12.5px;
+  }
+  .chip:hover{ border-color:var(--gold-dim); color:var(--gold); }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; }
+
+  .autolink{ color:var(--gold); border-bottom:1px dotted var(--gold-dim); cursor:pointer; }
+  .autolink:hover{ color:var(--parchment); }
+
+  .empty-state{ border:1px dashed var(--line); border-radius:var(--radius); padding:36px 20px; text-align:center; color:var(--text-dim); }
+  .empty-state h3{ color:var(--parchment-dim); margin-bottom:6px; font-size:19px; }
+  .empty-state .btn{ margin-top:14px; }
+
+  /* ---------- map ---------- */
+  .map-toolbar{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+  .map-hint{ font-size:12.5px; color:var(--text-dim); }
+  .map-shell{ display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+  .map-container{
+    position:relative; flex:1 1 560px; min-width:280px;
+    background:#0f141c; border:1px solid var(--line); border-radius:var(--radius);
+    overflow-y:auto; overflow-x:hidden; max-height:75vh;
+  }
+  .map-inner{ position:relative; width:100%; }
+  .map-inner.placing{ cursor:crosshair; }
+  .map-inner img{ display:block; width:100%; height:auto; }
+  .map-inner svg.map-placeholder{ display:block; width:100%; height:auto; }
+  .pin{
+    position:absolute; transform:translate(-50%,-100%); background:none; border:none; padding:0;
+    line-height:1; cursor:grab; filter:drop-shadow(0 2px 3px rgba(0,0,0,.6)); z-index:5;
+  }
+  .pin:active{ cursor:grabbing; }
+  .pin.locked{ cursor:pointer; }
+  .pin.locked:active{ cursor:pointer; }
+  .pin .pin-svg{ display:block; transform-origin:50% 100%; transition:transform .15s ease; }
+  .pin:hover .pin-svg{ transform:scale(1.15); }
+  .pin .pin-label{
+    position:absolute; bottom:calc(100% + 4px); left:50%; transform:translateX(-50%);
+    background:var(--ink-2); border:1px solid var(--gold-dim); color:var(--parchment);
+    padding:3px 9px; border-radius:3px; font-size:12px; white-space:nowrap; opacity:0; pointer-events:none;
+  }
+  .pin:hover .pin-label{ opacity:1; }
+  .map-legend{ display:flex; flex-wrap:wrap; gap:14px; font-size:11.5px; color:var(--text-dim); margin:-6px 0 12px; }
+  .map-legend .lg-item{ display:flex; align-items:center; gap:6px; }
+  .map-legend .lg-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; border:1px solid rgba(0,0,0,.35); }
+  .unplaced-box{
+    flex:1 1 220px; min-width:220px; background:var(--ink-2); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px; max-height:420px; overflow-y:auto;
+  }
+  .unplaced-box h4{ font-size:15px; margin-bottom:8px; color:var(--parchment-dim); }
+  .unplaced-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .unplaced-item:last-child{ border-bottom:none; }
+
+  /* ---------- forms / modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(10,13,18,.68); display:none;
+    align-items:center; justify-content:center; z-index:100; padding:20px;
+  }
+  .overlay.show{ display:flex; }
+  .modal{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:4px; width:560px; max-width:100%;
+    max-height:86vh; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .modal-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line); }
+  .modal-head h3{ font-size:20px; color:var(--gold); }
+  .modal-body{ padding:18px 20px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+  .modal-foot{ padding:14px 20px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:8px; }
+  .field label{ display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-dim); margin-bottom:5px; }
+  .field input[type=text], .field input[type=number], .field select, .field textarea{
+    width:100%; background:var(--ink); border:1px solid var(--line); color:var(--text);
+    padding:9px 10px; border-radius:var(--radius); font-size:14px;
+  }
+  .field textarea{ min-height:80px; resize:vertical; line-height:1.5; }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--gold-dim); }
+  .stat-fields{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+  .stat-fields .field label{ text-align:center; }
+  .stat-fields .field input{ text-align:center; }
+  .check-list{ display:flex; flex-wrap:wrap; gap:6px; max-height:150px; overflow-y:auto; border:1px solid var(--line); padding:8px; border-radius:var(--radius); background:var(--ink); }
+  .check-list label{ display:flex; align-items:center; gap:5px; font-size:12.5px; background:var(--ink-3); padding:4px 9px; border-radius:20px; text-transform:none; letter-spacing:0; color:var(--text); }
+  .check-list.empty{ color:var(--text-dim); font-size:12.5px; padding:4px; }
+  .image-field{ display:flex; flex-direction:column; gap:8px; }
+  .image-preview{
+    background:var(--ink); border:1px dashed var(--line); border-radius:var(--radius);
+    min-height:90px; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .image-preview img{ width:100%; display:block; max-height:320px; object-fit:contain; }
+  .image-placeholder{ color:var(--text-dim); font-size:12.5px; padding:20px; }
+  .image-field-actions{ display:flex; gap:8px; }
+
+  /* ---------- detail sheet ---------- */
+  .sheet-overlay{
+    position:fixed; inset:0; background:rgba(10,13,18,.5); display:none; z-index:90;
+  }
+  .sheet-overlay.show{ display:block; }
+  .sheet{
+    position:fixed; top:0; right:0; bottom:0; width:460px; max-width:100%;
+    background:var(--ink-2); border-left:1px solid var(--gold-dim); z-index:95;
+    display:flex; flex-direction:column; transform:translateX(100%); transition:transform .22s ease;
+    box-shadow:-14px 0 40px rgba(0,0,0,.4);
+  }
+  .sheet.show{ transform:translateX(0); }
+  .sheet-head{ padding:18px 20px; border-bottom:1px solid var(--line); }
+  .sheet-nav{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .sheet-title-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .sheet-title-row h2{ font-size:24px; }
+  .sheet-actions{ display:flex; gap:4px; flex-shrink:0; }
+  .sheet-body{ padding:18px 20px; overflow-y:auto; flex:1; }
+  .detail-row{ margin-bottom:16px; }
+  .detail-label{ font-size:11px; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); margin-bottom:6px; }
+  .detail-text{ color:var(--text); font-size:14.5px; line-height:1.65; white-space:normal; }
+  .rel-block{ margin-top:22px; padding-top:16px; border-top:1px solid var(--line); }
+  .rel-block h4{ font-size:13px; color:var(--parchment-dim); margin-bottom:8px; text-transform:uppercase; letter-spacing:.05em; font-family:var(--font-body); font-weight:600; }
+  .rel-group{ margin-bottom:12px; }
+  .rel-group .rel-group-label{ font-size:11.5px; color:var(--text-dim); margin-bottom:5px; }
+  .stat-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .stat-box{ background:var(--ink-3); border:1px solid var(--line); border-radius:var(--radius); padding:8px 4px; text-align:center; }
+  .stat-box .sb-label{ font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
+  .stat-box .sb-val{ font-family:var(--font-display); font-size:19px; color:var(--parchment); font-weight:700; }
+  .locator-btn{ margin-top:4px; }
+  .poi-accordion{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+  .poi-item{ border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--ink-3); }
+  .poi-head{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 12px; background:none; border:none; color:var(--text); text-align:left; cursor:pointer; }
+  .poi-head:hover{ background:rgba(255,255,255,.04); }
+  .poi-head-left{ display:flex; align-items:center; gap:4px; font-family:var(--font-display); font-size:16.5px; color:var(--parchment); font-weight:600; }
+  .poi-caret{ display:inline-block; width:14px; color:var(--gold); font-size:11px; }
+  .poi-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .poi-body{ padding:2px 14px 14px 30px; border-top:1px solid var(--line); }
+  .xp-summary{ background:var(--ink-3); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:12px; }
+  .xp-total{ font-family:var(--font-display); font-size:32px; color:var(--gold); font-weight:700; line-height:1; }
+  .xp-total small{ font-family:var(--font-body); font-size:12px; color:var(--text-dim); font-weight:500; margin-left:6px; }
+  .xp-level{ font-size:13px; color:var(--text); margin-top:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .xp-bar{ height:8px; background:var(--ink); border:1px solid var(--line); border-radius:6px; overflow:hidden; margin-top:10px; }
+  .xp-bar-fill{ height:100%; background:var(--gold); }
+  .xp-sub{ font-size:12px; color:var(--text-dim); margin-top:6px; }
+  .xp-log{ display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+  .xp-row{ display:flex; align-items:center; gap:10px; background:var(--ink-3); border:1px solid var(--line); border-radius:var(--radius); padding:8px 10px; }
+  .xp-amount{ font-family:var(--font-display); font-size:19px; font-weight:700; min-width:70px; }
+  .xp-amount.pos{ color:var(--moss-soft); }
+  .xp-amount.neg{ color:var(--wax-soft); }
+  .xp-info{ flex:1; min-width:0; }
+  .xp-reason{ font-size:13.5px; color:var(--text); overflow-wrap:anywhere; }
+  .xp-meta{ font-size:11.5px; color:var(--text-dim); }
+  .xp-actions{ display:flex; gap:2px; flex-shrink:0; }
+  .detail-image{ display:block; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+  .detail-image img{ width:100%; display:block; }
+  .reveal-box{ margin-top:10px; }
+
+  footer.side-foot{ padding:12px 16px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:6px; }
+  .side-foot .btn{ width:100%; justify-content:center; }
+
+  ::-webkit-scrollbar{ width:9px; height:9px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--ink-3); border-radius:5px; border:1px solid var(--line); }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--line); }
+
+  @media (max-width:820px){
+    .shell{ flex-direction:column; }
+    nav.sidebar{ width:100%; flex-direction:row; overflow-x:auto; padding:8px; border-right:none; border-bottom:1px solid var(--line); -webkit-overflow-scrolling:touch; }
+    .nav-btn{ flex-shrink:0; padding:10px 12px; }
+    .nav-sep{ display:none; }
+    main#view{ padding:18px 16px 60px; }
+    .sheet{ width:100%; }
+    .stat-fields{ grid-template-columns:repeat(3,1fr); }
+    .field input[type=text], .field input[type=number], .field select, .field textarea{ font-size:16px; }
+    #globalSearch{ font-size:16px; }
+    .icon-btn{ padding:7px 9px; font-size:15px; }
+    .card-actions .icon-btn, .poi-actions .icon-btn, .sheet-actions .icon-btn{ min-width:32px; min-height:32px; }
+    .btn{ padding:9px 14px; }
+    .top-actions{ width:100%; justify-content:flex-end; }
+    header.top{ padding:10px 14px; gap:10px; }
+    .brand{ order:1; }
+    .top-actions{ order:2; }
+    .search-wrap{ order:3; max-width:none; width:100%; }
+    .cal-widget{ order:4; width:100%; justify-content:center; }
+  }
+
+  /* ---------- sincronizzazione / modalità sola lettura ---------- */
+  .sync-status{ font-size:12px; color:var(--text-dim); display:inline-flex; align-items:center; gap:6px; padding:0 4px; white-space:nowrap; }
+  .sync-status.ok{ color:#7fae8a; }
+  .sync-status.busy{ color:var(--gold); }
+  .sync-status.err{ color:#d97c78; }
+  body.readonly [onclick*="openForm"],
+  body.readonly [onclick*="deleteEntity"],
+  body.readonly [onclick*="openXpForm"],
+  body.readonly [onclick*="deleteXpEntry"],
+  body.readonly [onclick*="deletePoiFromSheet"],
+  body.readonly [onclick*="togglePinsLock"],
+  body.readonly [onclick*="startPlacing"],
+  body.readonly [onclick*="removeMapImage"],
+  body.readonly [onclick*="advanceCalendar"],
+  body.readonly [onclick*="openCalForm"],
+  body.readonly [onclick*="editFromSheet"],
+  body.readonly [onclick*="deleteFromSheet"],
+  body.readonly #mapImgBtn,
+  body.readonly #importBtn{ display:none !important; }
+  #loadError{ max-width:560px; margin:60px auto; text-align:center; color:var(--text-dim); }
+  #loadError h3{ color:var(--gold); margin-bottom:8px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <span class="glyph">🗺️</span>
+      <h1 id="campaignTitle" contenteditable="false" spellcheck="false">La Mia Campagna</h1>
+    </div>
+    <div class="search-wrap">
+      <input id="globalSearch" type="text" placeholder="Cerca luoghi, PNG, fazioni, oggetti…" autocomplete="off">
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="cal-widget" id="calWidget"></div>
+    <div class="top-actions">
+      <span class="sync-status" id="syncStatus">Connessione…</span>
+      <button class="btn btn-sm" onclick="exportData()">⭳ Esporta</button>
+      <button class="btn btn-sm" id="importBtn" onclick="document.getElementById('importFile').click()">⭱ Importa</button>
+      <button class="btn btn-sm" id="authBtn" onclick="onAuthButton()">🔒 Modifica</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main id="view"></main>
+  </div>
+</div>
+
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<aside class="sheet" id="sheet">
+  <div class="sheet-head">
+    <div class="sheet-nav">
+      <button class="icon-btn" id="backBtn" onclick="detailBack()" style="display:none;">← Indietro</button>
+    </div>
+    <div class="sheet-title-row">
+      <h2 id="sheetTitle"></h2>
+      <div class="sheet-actions">
+        <button class="icon-btn" title="Modifica" onclick="editFromSheet()">✎</button>
+        <button class="icon-btn" title="Elimina" onclick="deleteFromSheet()">🗑</button>
+        <button class="icon-btn" title="Chiudi" onclick="closeSheet()">✕</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-body" id="sheetBody"></div>
+</aside>
+
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="formTitle"></h3>
+      <button class="icon-btn" onclick="closeForm()">✕</button>
+    </div>
+    <div class="modal-body" id="formBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeForm()">Annulla</button>
+      <button class="btn btn-primary" onclick="submitForm()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="xpOverlay">
+  <div class="modal" style="width:440px;">
+    <div class="modal-head"><h3 id="xpFormTitle"></h3><button class="icon-btn" onclick="closeXpForm()">✕</button></div>
+    <div class="modal-body" id="xpFormBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeXpForm()">Annulla</button>
+      <button class="btn btn-primary" onclick="submitXpForm()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="calOverlay">
+  <div class="modal" style="width:420px;">
+    <div class="modal-head"><h3>📅 Calendario di campagna</h3><button class="icon-btn" onclick="closeCalForm()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Giorno</label><input type="number" id="calDay" min="1"></div>
+      <div class="field"><label>Mese</label><select id="calMonth"></select></div>
+      <div class="field"><label>Anno</label><input type="number" id="calYear"></div>
+      <div class="field"><label>Giorni per mese</label><input type="number" id="calDaysPerMonth" min="1"></div>
+      <div class="field"><label>Nomi dei mesi (separati da virgola)</label><textarea id="calMonths"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCalForm()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveCalForm()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="loginOverlay">
+  <div class="modal" style="width:380px;">
+    <div class="modal-head"><h3>🔑 Modalità modifica</h3><button class="icon-btn" onclick="closeLogin()">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Codice di modifica</label><input type="password" id="loginCode" autocomplete="current-password" onkeydown="if(event.key==='Enter') submitLogin()"></div>
+      <div id="loginError" style="color:#d97c78; font-size:13px; min-height:1em;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeLogin()">Annulla</button>
+      <button class="btn btn-primary" onclick="submitLogin()">Entra</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================
+   CODEX DI CAMPAGNA — dati, schema, rendering
+   ============================================================ */
+
+/* ---------------- configurazione Supabase ----------------
+   Vedi GUIDA.md: copia qui URL e chiave "anon" (pubblica) del progetto. */
+const SUPABASE_URL      = 'https://lyuciqbeixxwoktxjafe.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY = 'sb_publishable_WZAfCORFUC9vg56ncgYacw_bdxuvAmX';
+const EDITOR_EMAIL      = 'editor@codex.local';   // deve coincidere con lo SQL e con l'utente creato in Supabase
+const IMAGE_BUCKET      = 'codex-images';
+
+const ICONS = {
+  place:'🏰', npc:'👤', faction:'🛡️', quest:'⚔️', event:'📜',
+  player:'🧙', monster:'🐉', item:'🎒', lore:'📖', note:'📝'
+};
+
+const STATUS_COLORS = {
+  'Vivo':'moss', 'Morto':'wax', 'Scomparso':'gold', 'Sconosciuto':'slate',
+  'Alleato':'moss', 'Amichevole':'moss', 'Neutrale':'slate', 'Diffidente':'gold', 'Nemico':'wax',
+  'Attiva':'gold', 'In sospeso':'slate', 'Completata':'moss', 'Fallita':'wax',
+  'Principale':'gold', 'Secondario':'moss', 'Terziario':'slate', 'Secondaria':'moss', 'Terziaria':'slate'
+};
+
+const SCHEMAS = {
+  place: {
+    label:'Luogo', plural:'Luoghi & Regioni', icon:ICONS.place,
+    fields:[
+      {key:'name', label:'Nome', type:'text', required:true},
+      {key:'category', label:'Tipo', type:'select', options:['Città','Villaggio','Regione','Dungeon','Rovina','Punto di interesse','Altro'], colored:false},
+      {key:'region', label:'Regione / area di appartenenza', type:'text'},
+      {key:'description', label:'Descrizione', type:'textarea'}
+    ]
+  },
+  poi: {
+    label:'Punto di interesse', plural:'Punti di interesse', icon:'🏷️',
+    fields:[
+      {key:'name', label:'Nome', type:'text', required:true},
+      {key:'category', label:'Tipo', type:'select', options:['Taverna','Locanda','Negozio','Tempio','Residenza','Gilda','Prigione','Altro']},
+      {key:'place', label:'Luogo', type:'relation', relType:'place', multi:false},
+      {key:'faction', label:'Fazione', type:'relation', relType:'faction', multi:false},
+      {key:'npcs', label:'PNG presenti', type:'relation', relType:'npc', multi:true},
+      {key:'description', label:'Descrizione', type:'textarea'}
+    ]
+  },
+  npc: {
+    label:'PNG', plural:'PNG', icon:ICONS.npc, groupBy:'importance',
+    fields:[
+      {key:'name', label:'Nome', type:'text', required:true},
+      {key:'importance', label:'Importanza', type:'select', options:['Principale','Secondario','Terziario'], colored:true, cardBadge:true},
+      {key:'role', label:'Ruolo / occupazione', type:'text'},
+      {key:'status', label:'Stato', type:'select', options:['Vivo','Morto','Scomparso','Sconosciuto'], colored:true},
+      {key:'attitude', label:'Atteggiamento verso il gruppo', type:'select', options:['Alleato','Amichevole','Neutrale','Diffidente','Nemico'], colored:true},
+      {key:'place', label:'Luogo attuale', type:'relation', relType:'place', multi:false},
+      {key:'faction', label:'Fazione', type:'relation', relType:'faction', multi:false},
+      {key:'description', label:'Descrizione', type:'textarea'},
+      {key:'history', label:'Storia nella campagna / azioni compiute', type:'textarea'},
+      {key:'statImage', label:'Foto scheda statistiche', type:'image', hideInCard:true, revealOnClick:true}
+    ]
+  },
+  faction: {
+    label:'Fazione', plural:'Fazioni', icon:ICONS.faction,
+    fields:[
+      {key:'name', label:'Nome', type:'text', required:true},
+      {key:'goal', label:'Obiettivi', type:'textarea'},
+      {key:'power', label:'Potere / influenza', type:'select', options:['Minore','Locale','Regionale','Continentale']},
+      {key:'places', label:'Luoghi di base o influenza', type:'relation', relType:'place', multi:true},
+      {key:'allies', label:'Fazioni alleate', type:'relation', relType:'faction', multi:true},
+      {key:'enemies', label:'Fazioni nemiche', type:'relation', relType:'faction', multi:true},
+      {key:'description', label:'Note aggiuntive', type:'textarea'}
+    ]
+  },
+  quest: {
+    label:'Missione', plural:'Missioni', icon:ICONS.quest, groupBy:'importance',
+    fields:[
+      {key:'name', label:'Nome missione', type:'text', required:true},
+      {key:'importance', label:'Importanza', type:'select', options:['Principale','Secondaria','Terziaria'], colored:true, cardBadge:true},
+      {key:'status', label:'Stato', type:'select', options:['Attiva','In sospeso','Completata','Fallita'], colored:true, cardBadge:true},
+      {key:'places', label:'Luoghi coinvolti', type:'relation', relType:'place', multi:true},
+      {key:'npcs', label:'PNG coinvolti', type:'relation', relType:'npc', multi:true},
+      {key:'factions', label:'Fazioni coinvolte', type:'relation', relType:'faction', multi:true},
+      {key:'description', label:'Descrizione', type:'textarea'},
+      {key:'rewards', label:'Ricompense (oro, esperienza, favori…)', type:'textarea'},
+      {key:'rewardItems', label:'Oggetti in ricompensa', type:'relation', relType:'item', multi:true}
+    ]
+  },
+  event: {
+    label:'Evento', plural:'Timeline', icon:ICONS.event, sortBy:['session','gameYear','gameMonth','gameDay'],
+    fields:[
+      {key:'name', label:'Titolo evento', type:'text', required:true},
+      {key:'session', label:'Sessione n°', type:'number', cardBadge:true},
+      {key:'gameDay', label:'Giorno', type:'number', cardBadge:true},
+      {key:'gameMonth', label:'Mese', type:'monthSelect', cardBadge:true},
+      {key:'gameYear', label:'Anno', type:'number', cardBadge:true},
+      {key:'place', label:'Luogo', type:'relation', relType:'place', multi:false},
+      {key:'npcs', label:'PNG coinvolti', type:'relation', relType:'npc', multi:true},
+      {key:'factions', label:'Fazioni coinvolte', type:'relation', relType:'faction', multi:true},
+      {key:'description', label:'Cosa è successo', type:'textarea'}
+    ]
+  },
+  player: {
+    label:'Personaggio', plural:'Schede Giocatore', icon:ICONS.player,
+    fields:[
+      {key:'name', label:'Nome personaggio', type:'text', required:true},
+      {key:'portrait', label:'Immagine di anteprima', type:'image'},
+      {key:'playerName', label:'Nome giocatore', type:'text'},
+      {key:'race', label:'Razza', type:'text'},
+      {key:'class', label:'Classe', type:'text'},
+      {key:'level', label:'Livello', type:'number'},
+      {key:'ac', label:'CA', type:'number', cardBadge:true, badgeIcon:'🛡️'},
+      {key:'hp', label:'PF', type:'number', cardBadge:true, badgeIcon:'❤️'},
+      {key:'passivePerception', label:'Percezione Passiva', type:'number', cardBadge:true, badgeIcon:'👁️'},
+      {key:'str', label:'FOR', type:'number', stat:true},
+      {key:'dex', label:'DES', type:'number', stat:true},
+      {key:'con', label:'COS', type:'number', stat:true},
+      {key:'int', label:'INT', type:'number', stat:true},
+      {key:'wis', label:'SAG', type:'number', stat:true},
+      {key:'cha', label:'CAR', type:'number', stat:true},
+      {key:'background', label:'Background', type:'textarea'},
+      {key:'description', label:'Note', type:'textarea'}
+    ]
+  },
+  monster: {
+    label:'Mostro', plural:'Bestiario', icon:ICONS.monster,
+    fields:[
+      {key:'name', label:'Nome', type:'text', required:true},
+      {key:'statImage', label:'Foto della scheda statistiche', type:'image', hideInCard:true},
+      {key:'cr', label:'Grado sfida (CR)', type:'text', badgeIcon:'⚔️'},
+      {key:'hp', label:'PF', type:'number', badgeIcon:'❤️'},
+      {key:'ac', label:'CA', type:'number', badgeIcon:'🛡️'},
+      {key:'speed', label:'Velocità', type:'text', badgeIcon:'👣'},
+      {key:'str', label:'FOR', type:'number', stat:true},
+      {key:'dex', label:'DES', type:'number', stat:true},
+      {key:'con', label:'COS', type:'number', stat:true},
+      {key:'int', label:'INT', type:'number', stat:true},
+      {key:'wis', label:'SAG', type:'number', stat:true},
+      {key:'cha', label:'CAR', type:'number', stat:true},
+      {key:'abilities', label:'Abilità / Azioni', type:'textarea'},
+      {key:'description', label:'Note', type:'textarea'}
+    ]
+  },
+  item: {
+    label:'Oggetto', plural:'Oggetti', icon:ICONS.item,
+    fields:[
+      {key:'name', label:'Nome', type:'text', required:true},
+      {key:'category', label:'Tipo', type:'text'},
+      {key:'rarity', label:'Rarità', type:'select', options:['Comune','Non comune','Raro','Molto raro','Leggendario','Unico']},
+      {key:'owner', label:'Proprietario attuale', type:'text'},
+      {key:'place', label:'Luogo', type:'relation', relType:'place', multi:false},
+      {key:'description', label:'Descrizione / Proprietà', type:'textarea'}
+    ]
+  },
+  lore: {
+    label:'Voce di lore', plural:'Storia & Cultura', icon:ICONS.lore,
+    fields:[
+      {key:'name', label:'Titolo', type:'text', required:true},
+      {key:'category', label:'Categoria', type:'select', options:['Storia del mondo','Cultura','Religione','Mito o leggenda','Altro']},
+      {key:'description', label:'Contenuto', type:'textarea'}
+    ]
+  },
+  note: {
+    label:'Appunto', plural:'Appunti Sessione', icon:ICONS.note,
+    fields:[
+      {key:'name', label:'Titolo', type:'text', required:true},
+      {key:'gameDate', label:'Riferimento (data o sessione)', type:'text'},
+      {key:'description', label:'Contenuto', type:'textarea'}
+    ]
+  }
+};
+
+const NAV = [
+  {key:'map', label:'Mappa', icon:'🗺️'},
+  {key:'lore', label:'Lore', icon:'📖'},
+  {key:'quest', label:'Missioni', icon:'⚔️'},
+  {key:'event', label:'Timeline', icon:'📜'},
+  {key:'npc', label:'PNG', icon:'👤'},
+  {key:'player', label:'Personaggi', icon:'🧙'},
+  {key:'monster', label:'Bestiario', icon:'🐉'},
+  {key:'item', label:'Oggetti', icon:'🎒'},
+  {key:'note', label:'Appunti', icon:'📝'}
+];
+const LORE_TABS = [
+  {key:'place', label:'Luoghi & Regioni'},
+  {key:'faction', label:'Fazioni'},
+  {key:'lore', label:'Storia & Cultura'}
+];
+
+/* ---------------- default / seed data ---------------- */
+function seedData(){
+  return {
+    campaignName:'La Mia Campagna',
+    mapImage:null,
+    pinsLocked:false,
+    calendar:{
+      months:['Primofiore','Ventoso','Solarrivo','Braceverde','Piena Estate','Falcegrano','Ruggente','Foglierossa','Brumaio','Gelosera','Nottelunga','Ultimanno'],
+      daysPerMonth:30, day:3, month:0, year:1
+    },
+    place:[
+      {id:'place_seed_1', name:'Porto Corvina', category:'Città', region:'Baia dei Sussurri', description:'Città portuale brulicante di mercanti, contrabbandieri e pescatori. Il molo principale ospita la Gilda dei Mercanti Grigi, mentre i vicoli nascondono più di un segreto.', mapX:30, mapY:56},
+      {id:'place_seed_2', name:'Foresta di Ombraluce', category:'Regione', region:'Baia dei Sussurri', description:'Un\u2019antica foresta dove la luce del sole filtra a stento. Si dice che tra i suoi alberi si nascondano rovine ancora più antiche.', mapX:62, mapY:28}
+    ],
+    faction:[
+      {id:'faction_seed_1', name:'Gilda dei Mercanti Grigi', goal:'Controllare le rotte commerciali della baia ed eliminare la concorrenza, con ogni mezzo necessario.', power:'Regionale', places:['place_seed_1'], allies:[], enemies:[], description:''}
+    ],
+    npc:[
+      {id:'npc_seed_1', name:'Sarin Vaelthorn', role:'Capitano del porto', status:'Vivo', attitude:'Amichevole', place:'place_seed_1', faction:'faction_seed_1', description:'Un ex avventuriero con una gamba di legno e un debole per le storie esagerate. Conosce tutti a Porto Corvina.', history:'Ha accolto il gruppo al loro arrivo e ha offerto la prima missione: ritrovare un carico scomparso.'}
+    ],
+    quest:[
+      {id:'quest_seed_1', name:'Il carico scomparso', status:'Attiva', places:['place_seed_1'], npcs:['npc_seed_1'], factions:['faction_seed_1'], description:'Una nave della Gilda dei Mercanti Grigi è scomparsa nella nebbia al largo della baia. Sarin Vaelthorn chiede aiuto al gruppo per scoprire cosa sia successo.'}
+    ],
+    event:[
+      {id:'event_seed_1', name:'Arrivo a Porto Corvina', session:1, gameDay:3, gameMonth:0, gameYear:1, place:'place_seed_1', npcs:['npc_seed_1'], factions:[], description:'Il gruppo sbarca a Porto Corvina e incontra Sarin Vaelthorn, che offre la prima missione.'}
+    ],
+    player:[],
+    monster:[],
+    item:[],
+    lore:[
+      {id:'lore_seed_1', name:'Le Grandi Maree', category:'Storia del mondo', description:'Un tempo la Baia dei Sussurri era terra ferma, prima che le Grandi Maree la sommergessero e ne ridisegnassero le coste. I pescatori giurano che nelle notti di luna piena si possano ancora sentire le campane dei villaggi sommersi.'}
+    ],
+    note:[
+      {id:'note_seed_1', name:'Idee per la prossima sessione', gameDate:'Prima della sessione 2', description:'Ricordati di far ritrovare al gruppo un frammento di mappa nella nave scomparsa: potrebbe portarli verso la Foresta di Ombraluce.'}
+    ]
+  };
+}
+
+let data = seedDataEmpty();   // riempito da loadRemote() all'avvio
+let currentSection = 'map';
+let currentLoreTab = 'place';
+let detailStack = [];
+let currentDetail = null; // {type,id}
+let mapPlacingId = null; // id of a place awaiting a click-to-place
+let dragState = null;
+
+/* ---------------- livello dati: Supabase ---------------- */
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const ENTITY_TYPES = Object.keys(SCHEMAS);
+let canEdit = false;
+let loaded = false;
+// Ultimo stato noto sul server: serve a calcolare cosa è cambiato.
+const synced = { json: new Map(), type: new Map(), campaign: '' };
+
+function seedDataEmpty(){
+  const s = seedData();
+  Object.keys(SCHEMAS).forEach(t=> s[t]=[]);
+  return s;
+}
+function campaignPart(){
+  const c = {};
+  Object.keys(data).forEach(k=>{ if(!ENTITY_TYPES.includes(k)) c[k] = data[k]; });
+  return c;
+}
+
+async function loadRemote(){
+  const [ent, camp] = await Promise.all([
+    sb.from('entities').select('id,type,data').order('seq').range(0, 4999),
+    sb.from('campaign').select('data').eq('id', 1).maybeSingle()
+  ]);
+  if(ent.error) throw ent.error;
+  if(camp.error) throw camp.error;
+  const d = seedDataEmpty();
+  if(camp.data && camp.data.data) Object.assign(d, camp.data.data);
+  synced.json.clear(); synced.type.clear();
+  (ent.data || []).forEach(r=>{
+    if(!Array.isArray(d[r.type])) d[r.type] = [];
+    d[r.type].push(r.data);
+    synced.json.set(r.id, JSON.stringify(r.data));
+    synced.type.set(r.id, r.type);
+  });
+  data = d;
+  synced.campaign = camp.data ? JSON.stringify(campaignPart()) : '';
+}
+
+/* --- stato di sincronizzazione mostrato nell'header --- */
+function setStatus(kind, text){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  el.className = 'sync-status ' + kind;
+  el.textContent = text;
+}
+
+/* --- salvataggio: calcola le differenze e invia solo i record cambiati --- */
+let saveTimer = null, flushing = false, flushAgain = false;
+function saveData(){
+  if(!canEdit) return;
+  setStatus('busy', 'Salvataggio…');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(flush, 400);
+}
+async function flush(){
+  if(flushing){ flushAgain = true; return; }
+  flushing = true;
+  try{
+    do{ flushAgain = false; await pushChanges(); } while(flushAgain);
+    setStatus('ok', '● Sincronizzato');
+  }catch(e){
+    console.error('Salvataggio non riuscito', e);
+    setStatus('err', '⚠ Salvataggio non riuscito');
+    alert('Salvataggio non riuscito: ' + (e.message || e) + '\nLe modifiche restano in questa pagina; riprova o ricarica dopo aver controllato la connessione.');
+  }
+  flushing = false;
+}
+async function pushChanges(){
+  await externalizeImages(data);
+
+  const camp = JSON.stringify(campaignPart());
+  if(camp !== synced.campaign){
+    const { error } = await sb.from('campaign').upsert({ id:1, data: JSON.parse(camp) });
+    if(error) throw error;
+    synced.campaign = camp;
+  }
+
+  const upserts = [], seen = new Set();
+  ENTITY_TYPES.forEach(type=>{
+    getEntities(type).forEach(e=>{
+      seen.add(e.id);
+      const s = JSON.stringify(e);
+      if(synced.json.get(e.id) !== s) upserts.push({ row:{ id:e.id, type, data: JSON.parse(s) }, s });
+    });
+  });
+  for(let i=0; i<upserts.length; i+=100){
+    const chunk = upserts.slice(i, i+100);
+    const { error } = await sb.from('entities').upsert(chunk.map(u=>u.row));
+    if(error) throw error;
+    chunk.forEach(u=>{ synced.json.set(u.row.id, u.s); synced.type.set(u.row.id, u.row.type); });
+  }
+
+  const removed = [...synced.json.keys()].filter(id=> !seen.has(id));
+  for(let i=0; i<removed.length; i+=100){
+    const chunk = removed.slice(i, i+100);
+    const { error } = await sb.from('entities').delete().in('id', chunk);
+    if(error) throw error;
+    chunk.forEach(id=>{ synced.json.delete(id); synced.type.delete(id); });
+  }
+}
+
+/* --- immagini: le data-URL vengono caricate su Storage e sostituite dall'URL pubblico --- */
+const uploadCache = new Map();
+async function sha256Hex(buf){
+  const d = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(d)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function uploadDataUrl(dataUrl){
+  if(uploadCache.has(dataUrl)) return uploadCache.get(dataUrl);
+  const m = /^data:(image\/[a-z0-9.+-]+);base64,/i.exec(dataUrl);
+  if(!m) throw new Error('Formato immagine non riconosciuto');
+  const mime = m[1].toLowerCase();
+  const blob = await (await fetch(dataUrl)).blob();
+  const hash = (await sha256Hex(await blob.arrayBuffer())).slice(0, 32);
+  const ext = {'image/webp':'webp','image/png':'png','image/jpeg':'jpg','image/gif':'gif'}[mime] || 'bin';
+  const path = hash + '.' + ext;
+  const { error } = await sb.storage.from(IMAGE_BUCKET).upload(path, blob, { contentType: mime, cacheControl:'31536000', upsert:false });
+  if(error && !(String(error.statusCode) === '409' || /exist|duplicate/i.test(error.message || ''))) throw error;
+  const url = sb.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+  uploadCache.set(dataUrl, url);
+  return url;
+}
+async function externalizeImages(node){
+  if(Array.isArray(node)){
+    for(let i=0;i<node.length;i++){
+      if(typeof node[i]==='string' && node[i].startsWith('data:image/')) node[i] = await uploadDataUrl(node[i]);
+      else if(node[i] && typeof node[i]==='object') await externalizeImages(node[i]);
+    }
+  } else if(node && typeof node==='object'){
+    for(const k of Object.keys(node)){
+      const v = node[k];
+      if(typeof v==='string' && v.startsWith('data:image/')) node[k] = await uploadDataUrl(v);
+      else if(v && typeof v==='object') await externalizeImages(v);
+    }
+  }
+}
+
+/* --- aggiornamenti in tempo reale dagli altri utenti --- */
+let refreshTimer = null;
+function scheduleRefresh(){
+  clearTimeout(refreshTimer);
+  refreshTimer = setTimeout(function tick(){
+    if(dragState){ refreshTimer = setTimeout(tick, 300); return; }
+    refreshUI();
+  }, 150);
+}
+function refreshUI(){
+  const t = document.getElementById('campaignTitle');
+  if(t && document.activeElement !== t) t.textContent = data.campaignName || 'La Mia Campagna';
+  renderCalWidget();
+  if(currentDetail){
+    if(getEntityById(currentDetail.type, currentDetail.id)) renderSheet(); else closeSheet();
+  }
+  render();
+}
+function applyRemoteEntity(id, type, rec){
+  const arr = getEntities(type);
+  const idx = arr.findIndex(e=>e.id===id);
+  // se qui ci sono modifiche non ancora salvate su questo record, le tengo (vincono al prossimo salvataggio)
+  if(idx>=0 && synced.json.has(id) && JSON.stringify(arr[idx]) !== synced.json.get(id)) return;
+  if(rec===null){
+    if(idx>=0) arr.splice(idx,1);
+    synced.json.delete(id); synced.type.delete(id);
+  } else {
+    if(idx>=0) arr[idx] = rec; else arr.push(rec);
+    synced.json.set(id, JSON.stringify(rec)); synced.type.set(id, type);
+  }
+  scheduleRefresh();
+}
+function subscribeRealtime(){
+  sb.channel('codex-live')
+    .on('postgres_changes', { event:'*', schema:'public', table:'entities' }, payload=>{
+      if(payload.eventType==='DELETE'){
+        const id = payload.old && payload.old.id;
+        const type = synced.type.get(id);
+        if(id && type) applyRemoteEntity(id, type, null);
+      } else {
+        const r = payload.new;
+        if(JSON.stringify(r.data) === synced.json.get(r.id)) return;   // eco di un nostro salvataggio
+        applyRemoteEntity(r.id, r.type, r.data);
+      }
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'campaign' }, payload=>{
+      if(payload.eventType==='DELETE' || !payload.new) return;
+      const incoming = JSON.stringify(payload.new.data);
+      if(incoming === synced.campaign) return;
+      if(JSON.stringify(campaignPart()) !== synced.campaign) return;   // modifiche locali in sospeso
+      Object.assign(data, payload.new.data);
+      synced.campaign = incoming;
+      scheduleRefresh();
+    })
+    .subscribe();
+}
+
+/* --- login "modalità modifica" (account condiviso, il codice è la password) --- */
+function setEditMode(on){
+  canEdit = !!on && loaded;
+  document.body.classList.toggle('readonly', !canEdit);
+  const t = document.getElementById('campaignTitle');
+  if(t) t.contentEditable = canEdit ? 'true' : 'false';
+  const b = document.getElementById('authBtn');
+  if(b) b.textContent = canEdit ? '✏️ Modifica attiva · Esci' : '🔒 Modifica';
+  setStatus(canEdit ? 'ok' : '', canEdit ? '● Sincronizzato' : 'Sola lettura');
+  if(loaded) render();
+}
+function onAuthButton(){
+  if(canEdit){ sb.auth.signOut(); return; }
+  document.getElementById('loginCode').value = '';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('loginOverlay').classList.add('show');
+  setTimeout(()=> document.getElementById('loginCode').focus(), 30);
+}
+function closeLogin(){ document.getElementById('loginOverlay').classList.remove('show'); }
+async function submitLogin(){
+  const code = document.getElementById('loginCode').value;
+  if(!code) return;
+  const { error } = await sb.auth.signInWithPassword({ email: EDITOR_EMAIL, password: code });
+  if(error){ document.getElementById('loginError').textContent = 'Codice non valido.'; return; }
+  closeLogin();
+}
+
+/* ---------------- helpers ---------------- */
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function uid(type){ return type+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7); }
+function getEntities(type){ return data[type] || (data[type]=[]); }
+function getEntityById(type, id){ return getEntities(type).find(e=>e.id===id); }
+function truncate(str, n){ str=(str||'').trim(); return str.length>n ? str.slice(0,n).trim()+'…' : str; }
+
+function buildIndex(){
+  const idx = [];
+  Object.keys(SCHEMAS).forEach(t=>{
+    getEntities(t).forEach(e=> idx.push({id:e.id, type:t, name:e.name}));
+  });
+  return idx;
+}
+function autoLinkText(text, excludeId){
+  if(!text) return '';
+  let idx = buildIndex().filter(e=> e.name && e.name.trim().length>1 && e.id!==excludeId);
+  idx.sort((a,b)=> b.name.length - a.name.length);
+  let escaped = escapeHtml(text);
+  if(idx.length===0) return escaped.replace(/\n/g,'<br>');
+  const seen = new Set();
+  const names = [];
+  idx.forEach(e=>{
+    const key = escapeHtml(e.name).toLowerCase();
+    if(!seen.has(key)){ seen.add(key); names.push(escapeHtml(e.name)); }
+  });
+  const map = {};
+  idx.forEach(e=>{ const k=escapeHtml(e.name).toLowerCase(); if(!map[k]) map[k]=e; });
+  const re = new RegExp('('+names.map(escapeRegex).join('|')+')','gi');
+  escaped = escaped.replace(re, (m)=>{
+    const e = map[m.toLowerCase()];
+    if(!e) return m;
+    return '<span class="autolink" onclick="openDetail(\''+e.type+'\',\''+e.id+'\')">'+m+'</span>';
+  });
+  return escaped.replace(/\n/g,'<br>');
+}
+function badgeHtml(field, value){
+  if(field.colored){
+    const tone = STATUS_COLORS[value] || 'slate';
+    return '<span class="tag tone-'+tone+'">'+escapeHtml(value)+'</span>';
+  }
+  return '<span class="tag">'+escapeHtml(String(value))+'</span>';
+}
+function renderChips(type, ids){
+  return ids.map(id=>{
+    const e = getEntityById(type,id);
+    if(!e) return '';
+    return '<button class="chip" onclick="openDetail(\''+type+'\',\''+id+'\')">'+(ICONS[type]||'')+' '+escapeHtml(e.name)+'</button>';
+  }).join('');
+}
+
+/* ---------------- nav / render dispatch ---------------- */
+function renderSidebar(){
+  const nav = document.getElementById('sidebar');
+  nav.innerHTML = NAV.map(n=>
+    '<button class="nav-btn'+(currentSection===n.key?' active':'')+'" onclick="navigate(\''+n.key+'\')">'+
+    '<span class="n-ic">'+n.icon+'</span><span>'+n.label+'</span></button>'
+  ).join('');
+}
+function navigate(section, tab){
+  currentSection = section;
+  if(section==='lore') currentLoreTab = tab || currentLoreTab || 'place';
+  mapPlacingId = null;
+  closeSheet();
+  render();
+}
+function render(){
+  renderSidebar();
+  const view = document.getElementById('view');
+  if(currentSection==='map'){ view.innerHTML = ''; renderMap(view); }
+  else if(currentSection==='lore'){ renderLoreSection(view); }
+  else { renderListSection(currentSection, view); }
+}
+
+/* ---------------- generic list section ---------------- */
+let listSortReversed = {};
+function toggleListSort(type){
+  listSortReversed[type] = !listSortReversed[type];
+  render();
+}
+function renderListSection(type, container){
+  const schema = SCHEMAS[type];
+  const items = getEntities(type).slice().sort((a,b)=>{
+    if(schema.sortBy){
+      const keys = Array.isArray(schema.sortBy) ? schema.sortBy : [schema.sortBy];
+      for(let i=0;i<keys.length;i++){
+        const k = keys[i];
+        const av = a[k], bv = b[k];
+        const an = (av===undefined || av===null || av==='') ? Infinity : Number(av);
+        const bn = (bv===undefined || bv===null || bv==='') ? Infinity : Number(bv);
+        if(an!==bn) return an-bn;
+      }
+    }
+    return (a.name||'').localeCompare(b.name||'');
+  });
+  if(schema.sortBy && listSortReversed[type]) items.reverse();
+  let html = '';
+  html += '<div class="section-head"><div><h2>'+schema.icon+' '+schema.plural+'</h2>'+
+    '<div class="sub">'+items.length+' vo'+(items.length===1?'ce':'ci')+'</div></div>'+
+    '<div style="display:flex; gap:8px;">'+
+    (type==='player' && items.length? '<button class="btn btn-sm" onclick="openXpForm(\'group\')" title="Assegna la stessa esperienza a più personaggi">✨ XP al gruppo</button>' : '')+
+    (schema.sortBy? '<button class="btn btn-sm" onclick="toggleListSort(\''+type+'\')" title="Inverti ordine di visualizzazione">'+(listSortReversed[type]? '↑ Più recenti prima':'↓ Più vecchi prima')+'</button>' : '')+
+    '<button class="btn btn-primary" onclick="openForm(\''+type+'\')">+ Nuovo</button></div></div>';
+  if(items.length===0){
+    html += '<div class="empty-state"><h3>Ancora nulla qui</h3><p>Aggiungi la prima voce per iniziare a costruire il tuo mondo.</p>'+
+      '<button class="btn btn-primary" onclick="openForm(\''+type+'\')">+ Aggiungi '+schema.label.toLowerCase()+'</button></div>';
+  } else if(schema.groupBy){
+    const field = schema.fields.find(f=>f.key===schema.groupBy);
+    const buckets = {};
+    field.options.forEach(o=> buckets[o]=[]);
+    const unassigned = [];
+    items.forEach(it=>{
+      const v = it[schema.groupBy];
+      if(v && buckets[v]) buckets[v].push(it); else unassigned.push(it);
+    });
+    field.options.forEach(o=>{
+      if(!buckets[o].length) return;
+      html += '<div class="group-section"><h3 class="group-title"><span class="group-dot" style="background:'+(TONE_HEX[STATUS_COLORS[o]]||TONE_HEX.slate)+'"></span>'+escapeHtml(o)+' <span class="group-count">('+buckets[o].length+')</span></h3>'+
+        '<div class="grid">'+buckets[o].map(e=> cardHtml(type,e)).join('')+'</div></div>';
+    });
+    if(unassigned.length){
+      html += '<div class="group-section"><h3 class="group-title">Non assegnati <span class="group-count">('+unassigned.length+')</span></h3>'+
+        '<div class="grid">'+unassigned.map(e=> cardHtml(type,e)).join('')+'</div></div>';
+    }
+  } else {
+    html += '<div class="grid">'+items.map(e=> cardHtml(type,e)).join('')+'</div>';
+  }
+  container.innerHTML = html;
+}
+function renderLoreSection(container){
+  let html = '<div class="section-head"><div><h2>📖 Lore</h2><div class="sub">Luoghi, fazioni e storia del mondo</div></div></div>';
+  html += '<div class="lore-tabs">'+LORE_TABS.map(t=>
+    '<button class="lore-tab'+(currentLoreTab===t.key?' active':'')+'" onclick="navigate(\'lore\',\''+t.key+'\')">'+t.label+'</button>'
+  ).join('')+'</div>';
+  html += '<div id="loreSub"></div>';
+  container.innerHTML = html;
+  renderListSection(currentLoreTab, document.getElementById('loreSub'));
+}
+function cardSummary(type, e){
+  const schema = SCHEMAS[type];
+  let priority = []; let normal = []; let excerpt = '';
+  schema.fields.forEach(f=>{
+    if(f.key==='name' || f.stat || f.type==='image') return;
+    let badgeStr = null;
+    if(f.type==='select'){
+      if(e[f.key]) badgeStr = badgeHtml(f, e[f.key]);
+    } else if(f.type==='monthSelect'){
+      if(e[f.key]!==undefined && e[f.key]!=='' && e[f.key]!==null){
+        const monthName = data.calendar.months[e[f.key]] || ('Mese '+(Number(e[f.key])+1));
+        badgeStr = '<span class="tag" title="'+escapeHtml(f.label)+'">'+escapeHtml(monthName)+'</span>';
+      }
+    } else if(f.type==='text' || f.type==='number'){
+      if(e[f.key]!==undefined && e[f.key]!=='' && e[f.key]!==null){
+        badgeStr = '<span class="tag" title="'+escapeHtml(f.label)+'">'+(f.badgeIcon? f.badgeIcon+' ':'')+escapeHtml(String(e[f.key]))+'</span>';
+      }
+    } else if(f.type==='relation' && !f.multi){
+      if(e[f.key]){ const t = getEntityById(f.relType, e[f.key]); if(t) badgeStr = '<span class="tag">'+(ICONS[f.relType]||'')+' '+escapeHtml(t.name)+'</span>'; }
+    } else if(f.type==='textarea' && !excerpt){
+      excerpt = truncate(e[f.key], 130);
+    }
+    if(badgeStr){ if(f.cardBadge) priority.push(badgeStr); else normal.push(badgeStr); }
+  });
+  if(type==='player' && (e.xpLog||[]).length){
+    priority.push('<span class="tag tone-gold" title="Punti esperienza totali">✨ '+fmtNum(xpTotal(e))+' XP</span>');
+  }
+  return {badges: priority.concat(normal).slice(0,8), excerpt};
+}
+function findImageField(type){
+  return SCHEMAS[type].fields.find(f=> f.type==='image' && !f.hideInCard);
+}
+function cardHtml(type, e){
+  const s = cardSummary(type, e);
+  const imgField = findImageField(type);
+  const thumb = (imgField && e[imgField.key]) ? '<div class="card-thumb"><img src="'+e[imgField.key]+'" alt=""></div>' : '';
+  return '<div class="card" onclick="openDetail(\''+type+'\',\''+e.id+'\')">'+
+    thumb+
+    '<div class="card-top"><div class="card-title">'+escapeHtml(e.name)+'</div>'+
+    '<div class="card-actions" onclick="event.stopPropagation()">'+
+      '<button class="icon-btn" title="Modifica" onclick="openForm(\''+type+'\',\''+e.id+'\')">✎</button>'+
+      '<button class="icon-btn" title="Elimina" onclick="deleteEntity(\''+type+'\',\''+e.id+'\')">🗑</button>'+
+    '</div></div>'+
+    (s.badges.length? '<div class="card-badges">'+s.badges.join('')+'</div>':'')+
+    (s.excerpt? '<div class="card-excerpt">'+escapeHtml(s.excerpt)+'</div>':'')+
+    '</div>';
+}
+
+/* ---------------- form (create / edit) ---------------- */
+let formState = { type:null, id:null };
+let formImageValues = {};
+function openForm(type, id, presets){
+  if(!canEdit) return;
+  formState = {type, id: id||null};
+  formImageValues = {};
+  const schema = SCHEMAS[type];
+  const entity = id ? getEntityById(type,id) : Object.assign({}, presets||{});
+  document.getElementById('formTitle').textContent = (id? 'Modifica ':'Nuovo ') + schema.label.toLowerCase();
+  const body = document.getElementById('formBody');
+  let html = '';
+  const statFields = schema.fields.filter(f=>f.stat);
+  const normalFields = schema.fields.filter(f=>!f.stat);
+  normalFields.forEach(f=>{
+    html += fieldHtml(type, f, entity);
+  });
+  if(statFields.length){
+    html += '<div class="field"><label>Caratteristiche</label><div class="stat-fields">'+
+      statFields.map(f=>{
+        const v = entity[f.key]!==undefined? entity[f.key] : '';
+        return '<div class="field"><label>'+f.label+'</label><input type="number" id="f_'+f.key+'" value="'+escapeHtml(v)+'"></div>';
+      }).join('')+
+      '</div></div>';
+  }
+  body.innerHTML = html;
+  document.getElementById('formOverlay').classList.add('show');
+  const firstInput = body.querySelector('input,textarea,select');
+  if(firstInput) setTimeout(()=>firstInput.focus(), 30);
+}
+function handleImageFieldChange(ev, key){
+  const file = ev.target.files[0];
+  if(!file) return;
+  if(file.size > 4*1024*1024){
+    if(!confirm('Questa immagine è piuttosto pesante ('+Math.round(file.size/1024/1024*10)/10+' MB) e rallenterà il caricamento della wiki per tutti. Usarla comunque?')){
+      ev.target.value = '';
+      return;
+    }
+  }
+  const reader = new FileReader();
+  reader.onload = function(){
+    formImageValues[key] = reader.result;
+    const preview = document.getElementById('imgpreview_'+key);
+    if(preview) preview.innerHTML = '<img src="'+reader.result+'" alt="">';
+  };
+  reader.readAsDataURL(file);
+}
+function clearImageField(key){
+  formImageValues[key] = null;
+  const preview = document.getElementById('imgpreview_'+key);
+  if(preview) preview.innerHTML = '<span class="image-placeholder">Nessuna immagine</span>';
+  const input = document.getElementById('imginput_'+key);
+  if(input) input.value = '';
+}
+function fieldHtml(type, f, entity){
+  const val = entity[f.key];
+  if(f.type==='text' || f.type==='number'){
+    return '<div class="field"><label>'+f.label+(f.required?' *':'')+'</label>'+
+      '<input type="'+f.type+'" id="f_'+f.key+'" value="'+escapeHtml(val!==undefined&&val!==null?val:'')+'"></div>';
+  }
+  if(f.type==='textarea'){
+    return '<div class="field"><label>'+f.label+'</label><textarea id="f_'+f.key+'">'+escapeHtml(val||'')+'</textarea></div>';
+  }
+  if(f.type==='monthSelect'){
+    const months = data.calendar.months;
+    return '<div class="field"><label>'+f.label+'</label><select id="f_'+f.key+'">'+
+      '<option value="">— Nessuno —</option>'+
+      months.map((m,i)=> '<option value="'+i+'"'+(String(val)===String(i)?' selected':'')+'>'+escapeHtml(m)+'</option>').join('')+
+      '</select></div>';
+  }
+  if(f.type==='image'){
+    const current = val || null;
+    formImageValues[f.key] = current;
+    return '<div class="field"><label>'+f.label+'</label>'+
+      '<div class="image-field">'+
+        '<div class="image-preview" id="imgpreview_'+f.key+'">'+
+          (current? '<img src="'+current+'" alt="">' : '<span class="image-placeholder">Nessuna immagine — carica una foto o uno screenshot</span>')+
+        '</div>'+
+        '<div class="image-field-actions">'+
+          '<button type="button" class="btn btn-sm" onclick="document.getElementById(\'imginput_'+f.key+'\').click()">🖼 Carica immagine</button>'+
+          '<button type="button" class="btn btn-sm btn-ghost" onclick="clearImageField(\''+f.key+'\')">Rimuovi</button>'+
+        '</div>'+
+        '<input type="file" id="imginput_'+f.key+'" accept="image/*" style="display:none" onchange="handleImageFieldChange(event,\''+f.key+'\')">'+
+      '</div></div>';
+  }
+  if(f.type==='select'){
+    return '<div class="field"><label>'+f.label+'</label><select id="f_'+f.key+'">'+
+      '<option value="">— Nessuno —</option>'+
+      f.options.map(o=> '<option value="'+escapeHtml(o)+'"'+(val===o?' selected':'')+'>'+escapeHtml(o)+'</option>').join('')+
+      '</select></div>';
+  }
+  if(f.type==='relation'){
+    const opts = getEntities(f.relType).filter(e=> !(f.relType===type && entity.id && e.id===entity.id)).slice().sort((a,b)=>a.name.localeCompare(b.name));
+    if(!f.multi){
+      return '<div class="field"><label>'+f.label+'</label><select id="f_'+f.key+'">'+
+        '<option value="">— Nessuno —</option>'+
+        opts.map(o=> '<option value="'+o.id+'"'+(val===o.id?' selected':'')+'>'+escapeHtml(o.name)+'</option>').join('')+
+        '</select></div>';
+    } else {
+      const selected = new Set(val||[]);
+      if(opts.length===0){
+        return '<div class="field"><label>'+f.label+'</label><div class="check-list empty">Nessuna voce disponibile ancora.</div></div>';
+      }
+      return '<div class="field"><label>'+f.label+'</label><div class="check-list" id="f_'+f.key+'">'+
+        opts.map(o=> '<label><input type="checkbox" value="'+o.id+'"'+(selected.has(o.id)?' checked':'')+'> '+escapeHtml(o.name)+'</label>').join('')+
+        '</div></div>';
+    }
+  }
+  return '';
+}
+function closeForm(){ document.getElementById('formOverlay').classList.remove('show'); }
+function submitForm(){
+  const {type, id} = formState;
+  const schema = SCHEMAS[type];
+  const entity = id ? getEntityById(type,id) : {id: uid(type)};
+  let nameVal = '';
+  schema.fields.forEach(f=>{
+    if(f.type==='image'){
+      entity[f.key] = formImageValues[f.key] || null;
+    } else if(f.type==='relation'){
+      if(f.multi){
+        const box = document.getElementById('f_'+f.key);
+        if(box){
+          const checked = Array.from(box.querySelectorAll('input[type=checkbox]:checked')).map(i=>i.value);
+          entity[f.key] = checked;
+        } else entity[f.key] = entity[f.key] || [];
+      } else {
+        const el = document.getElementById('f_'+f.key);
+        entity[f.key] = el ? el.value : '';
+      }
+    } else {
+      const el = document.getElementById('f_'+f.key);
+      if(!el) return;
+      let v = el.value;
+      if(f.type==='number' || f.type==='monthSelect'){ v = v===''? '' : Number(v); }
+      entity[f.key] = v;
+    }
+    if(f.key==='name') nameVal = entity[f.key];
+  });
+  if(!nameVal || !String(nameVal).trim()){
+    alert('Il nome è obbligatorio.');
+    return;
+  }
+  if(!id){ getEntities(type).push(entity); }
+  saveData();
+  closeForm();
+  if(currentDetail){
+    if(currentDetail.type===type && currentDetail.id===entity.id){ renderSheet(); }
+    else if(type==='poi' && currentDetail.type==='place' && entity.place===currentDetail.id){ renderSheet(); }
+  }
+  render();
+}
+function deleteEntity(type, id){
+  const e = getEntityById(type,id);
+  if(!e) return;
+  if(!confirm('Eliminare "'+e.name+'" definitivamente?')) return;
+  data[type] = getEntities(type).filter(x=>x.id!==id);
+  saveData();
+  if(currentDetail && currentDetail.type===type && currentDetail.id===id){
+    closeSheet();
+  }
+  render();
+  if(currentSection==='map') renderMap(document.getElementById('view'));
+}
+function editFromSheet(){ if(currentDetail) openForm(currentDetail.type, currentDetail.id); }
+function deleteFromSheet(){ if(currentDetail) deleteEntity(currentDetail.type, currentDetail.id); }
+
+/* ---------------- detail sheet ---------------- */
+function openDetail(type, id, fromNav){
+  if(currentDetail && !fromNav) detailStack.push(currentDetail);
+  if(fromNav) detailStack = [];
+  currentDetail = {type, id};
+  renderSheet();
+  document.getElementById('sheet').classList.add('show');
+  document.getElementById('sheetOverlay').classList.add('show');
+  document.getElementById('backBtn').style.display = detailStack.length? 'inline-flex':'none';
+}
+function detailBack(){
+  if(detailStack.length===0){ closeSheet(); return; }
+  currentDetail = detailStack.pop();
+  renderSheet();
+  document.getElementById('backBtn').style.display = detailStack.length? 'inline-flex':'none';
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('show');
+  document.getElementById('sheetOverlay').classList.remove('show');
+  currentDetail = null;
+  detailStack = [];
+}
+function findReferencingEntities(targetType, targetId){
+  const results = {};
+  Object.keys(SCHEMAS).forEach(t=>{
+    const schema = SCHEMAS[t];
+    getEntities(t).forEach(e=>{
+      schema.fields.forEach(f=>{
+        if(f.type==='relation' && f.relType===targetType){
+          const v = e[f.key];
+          const arr = Array.isArray(v)? v : (v? [v]:[]);
+          if(arr.includes(targetId)){
+            results[t] = results[t] || [];
+            if(!results[t].find(x=>x.id===e.id)) results[t].push(e);
+          }
+        }
+      });
+    });
+  });
+  return results;
+}
+/* ---------------- esperienza (XP) ---------------- */
+const XP_TABLE = [0,300,900,2700,6500,14000,23000,34000,48000,64000,85000,100000,120000,140000,165000,195000,225000,265000,305000,355000];
+function fmtNum(n){ return Number(n).toLocaleString('it-IT'); }
+function xpTotal(p){ return (p.xpLog||[]).reduce((s,x)=> s+(Number(x.amount)||0), 0); }
+function xpLevelInfo(total){
+  let lvl = 1;
+  for(let i=0;i<XP_TABLE.length;i++){ if(total>=XP_TABLE[i]) lvl = i+1; }
+  return {level:lvl, cur:XP_TABLE[lvl-1], next: lvl<XP_TABLE.length ? XP_TABLE[lvl] : null};
+}
+function renderXpSection(p){
+  const log = p.xpLog || [];
+  const total = xpTotal(p);
+  const info = xpLevelInfo(total);
+  let pct = 100, sub = 'Livello massimo raggiunto';
+  if(info.next!==null){
+    pct = Math.max(0, Math.min(100, ((total-info.cur)/(info.next-info.cur))*100));
+    sub = 'Prossimo livello a '+fmtNum(info.next)+' XP · mancano '+fmtNum(Math.max(0, info.next-total));
+  }
+  const hasLevel = p.level!==undefined && p.level!=='' && p.level!==null;
+  const canLevelUp = hasLevel && info.level > Number(p.level);
+  let h = '<div class="rel-block"><h4>Esperienza</h4>';
+  h += '<div class="xp-summary">'+
+    '<div class="xp-total">'+fmtNum(total)+'<small>XP totali</small></div>'+
+    '<div class="xp-level"><span>Livello '+info.level+' secondo la tabella XP</span>'+
+      (canLevelUp? '<span class="tag tone-gold">⬆ Può salire al livello '+info.level+'</span>' : '')+
+    '</div>'+
+    '<div class="xp-bar"><div class="xp-bar-fill" style="width:'+pct+'%"></div></div>'+
+    '<div class="xp-sub">'+sub+'</div>'+
+  '</div>';
+  if(log.length===0){
+    h += '<p style="color:var(--text-dim); font-size:13px; margin-bottom:10px;">Nessuna voce di esperienza ancora.</p>';
+  } else {
+    h += '<div class="xp-log">'+log.slice().reverse().map(x=>{
+      const amt = Number(x.amount)||0;
+      const meta = (x.session!==undefined && x.session!=='' && x.session!==null) ? 'Sessione '+escapeHtml(x.session) : '';
+      return '<div class="xp-row">'+
+        '<div class="xp-amount '+(amt<0?'neg':'pos')+'">'+(amt>0?'+':'')+fmtNum(amt)+'</div>'+
+        '<div class="xp-info"><div class="xp-reason">'+(x.reason? escapeHtml(x.reason) : '<span style="color:var(--text-dim)">Senza motivo</span>')+'</div>'+
+          (meta? '<div class="xp-meta">'+meta+'</div>' : '')+'</div>'+
+        '<div class="xp-actions">'+
+          '<button class="icon-btn" title="Modifica" onclick="openXpForm(\'edit\',\''+p.id+'\',\''+x.id+'\')">✎</button>'+
+          '<button class="icon-btn" title="Elimina" onclick="deleteXpEntry(\''+p.id+'\',\''+x.id+'\')">🗑</button>'+
+        '</div></div>';
+    }).join('')+'</div>';
+  }
+  h += '<button class="btn btn-sm" onclick="openXpForm(\'single\',\''+p.id+'\')">+ Aggiungi XP</button>';
+  h += '</div>';
+  return h;
+}
+let xpFormState = {mode:'single', playerId:null, entryId:null};
+function openXpForm(mode, playerId, entryId){
+  if(!canEdit) return;
+  xpFormState = {mode, playerId: playerId||null, entryId: entryId||null};
+  let entry = {};
+  if(mode==='edit'){
+    const p = getEntityById('player', playerId);
+    entry = (p && (p.xpLog||[]).find(x=>x.id===entryId)) || {};
+  }
+  const titles = {single:'Aggiungi esperienza', group:'Aggiungi esperienza al gruppo', edit:'Modifica voce di esperienza'};
+  document.getElementById('xpFormTitle').textContent = titles[mode];
+  let html = '<div class="field"><label>Quantità XP'+(mode==='group'?' (per ciascun personaggio)':'')+' *</label>'+
+      '<input type="number" id="xpAmount" value="'+escapeHtml(entry.amount!==undefined?entry.amount:'')+'" placeholder="es. 300"></div>'+
+    '<div class="field"><label>Motivo</label><input type="text" id="xpReason" value="'+escapeHtml(entry.reason||'')+'" placeholder="es. Sconfitto il drago"></div>'+
+    '<div class="field"><label>Sessione n°</label><input type="number" id="xpSession" value="'+escapeHtml(entry.session!==undefined&&entry.session!==null?entry.session:'')+'"></div>';
+  if(mode==='group'){
+    const players = getEntities('player').slice().sort((a,b)=> a.name.localeCompare(b.name));
+    html += '<div class="field"><label>Personaggi</label><div class="check-list" id="xpPlayers">'+
+      players.map(p=> '<label><input type="checkbox" value="'+p.id+'" checked> '+escapeHtml(p.name)+'</label>').join('')+
+      '</div></div>';
+  }
+  document.getElementById('xpFormBody').innerHTML = html;
+  document.getElementById('xpOverlay').classList.add('show');
+  setTimeout(()=>{ const el = document.getElementById('xpAmount'); if(el) el.focus(); }, 30);
+}
+function closeXpForm(){ document.getElementById('xpOverlay').classList.remove('show'); }
+function submitXpForm(){
+  const rawAmount = document.getElementById('xpAmount').value;
+  const amount = Number(rawAmount);
+  if(rawAmount==='' || isNaN(amount) || amount===0){
+    alert('Inserisci una quantità di XP valida (diversa da zero).');
+    return;
+  }
+  const reason = document.getElementById('xpReason').value.trim();
+  const rawSession = document.getElementById('xpSession').value;
+  const session = rawSession==='' ? '' : Number(rawSession);
+  const {mode, playerId, entryId} = xpFormState;
+  if(mode==='edit'){
+    const p = getEntityById('player', playerId);
+    const entry = p && (p.xpLog||[]).find(x=>x.id===entryId);
+    if(entry){ entry.amount = amount; entry.reason = reason; entry.session = session; }
+  } else if(mode==='single'){
+    const p = getEntityById('player', playerId);
+    if(p){ p.xpLog = p.xpLog || []; p.xpLog.push({id:uid('xp'), amount, reason, session}); }
+  } else if(mode==='group'){
+    const ids = Array.from(document.querySelectorAll('#xpPlayers input[type=checkbox]:checked')).map(i=>i.value);
+    if(ids.length===0){ alert('Seleziona almeno un personaggio.'); return; }
+    ids.forEach(pid=>{
+      const p = getEntityById('player', pid);
+      if(p){ p.xpLog = p.xpLog || []; p.xpLog.push({id:uid('xp'), amount, reason, session}); }
+    });
+  }
+  saveData();
+  closeXpForm();
+  if(currentDetail) renderSheet();
+  render();
+}
+function deleteXpEntry(playerId, entryId){
+  const p = getEntityById('player', playerId);
+  if(!p) return;
+  const entry = (p.xpLog||[]).find(x=>x.id===entryId);
+  if(!entry) return;
+  if(!confirm('Eliminare questa voce di esperienza?')) return;
+  p.xpLog = p.xpLog.filter(x=>x.id!==entryId);
+  saveData();
+  renderSheet();
+  render();
+}
+
+function abilityMod(v){
+  if(v===undefined || v===null || v==='' || isNaN(v)) return '';
+  const m = Math.floor((Number(v)-10)/2);
+  return ' ('+(m>=0?'+':'')+m+')';
+}
+function renderSheet(){
+  if(!currentDetail) return;
+  const {type, id} = currentDetail;
+  const schema = SCHEMAS[type];
+  const e = getEntityById(type,id);
+  const titleEl = document.getElementById('sheetTitle');
+  const body = document.getElementById('sheetBody');
+  if(!e){
+    titleEl.textContent = 'Voce eliminata';
+    body.innerHTML = '<p style="color:var(--text-dim)">Questa voce non esiste più.</p>';
+    return;
+  }
+  titleEl.innerHTML = (schema.icon||'')+' '+escapeHtml(e.name);
+  let html = '';
+
+  if(type==='place' && e.mapX!==undefined && e.mapX!==null){
+    html += '<button class="btn btn-sm locator-btn" onclick="showOnMap(\''+e.id+'\')">📍 Mostra sulla mappa</button>';
+  }
+
+  const statFields = schema.fields.filter(f=>f.stat);
+  if(statFields.length){
+    html += '<div class="stat-grid">'+statFields.map(f=>{
+      const v = e[f.key];
+      return '<div class="stat-box"><div class="sb-label">'+f.label+'</div><div class="sb-val">'+(v!==undefined&&v!==''?v:'—')+abilityMod(v)+'</div></div>';
+    }).join('')+'</div>';
+  }
+
+  schema.fields.forEach(f=>{
+    if(f.key==='name' || f.stat) return;
+    let valueHtml = '';
+    if(f.type==='image'){
+      if(!e[f.key]) return;
+      if(f.revealOnClick){
+        valueHtml = '<button class="btn btn-sm" id="revealbtn_'+f.key+'" onclick="toggleImageReveal(\''+f.key+'\')">🗒️ Mostra scheda statistiche</button>'+
+          '<div class="detail-image reveal-box" id="imgreveal_'+f.key+'" style="display:none;">'+
+            '<a href="'+e[f.key]+'" target="_blank" rel="noopener" title="Apri a schermo intero"><img src="'+e[f.key]+'" alt="'+escapeHtml(f.label)+'"></a>'+
+          '</div>';
+      } else {
+        valueHtml = '<a class="detail-image" href="'+e[f.key]+'" target="_blank" rel="noopener" title="Apri a schermo intero"><img src="'+e[f.key]+'" alt="'+escapeHtml(f.label)+'"></a>';
+      }
+    } else if(f.type==='textarea'){
+      if(!e[f.key]) return;
+      valueHtml = '<div class="detail-text">'+autoLinkText(e[f.key], e.id)+'</div>';
+    } else if(f.type==='relation'){
+      if(f.multi){
+        const ids = e[f.key]||[];
+        if(!ids.length) return;
+        valueHtml = '<div class="chips">'+renderChips(f.relType, ids)+'</div>';
+      } else {
+        if(!e[f.key]) return;
+        valueHtml = '<div class="chips">'+renderChips(f.relType, [e[f.key]])+'</div>';
+      }
+    } else if(f.type==='monthSelect'){
+      if(e[f.key]===undefined || e[f.key]==='' || e[f.key]===null) return;
+      valueHtml = '<span>'+escapeHtml(data.calendar.months[e[f.key]] || ('Mese '+(Number(e[f.key])+1)))+'</span>';
+    } else {
+      if(e[f.key]===undefined || e[f.key]==='' || e[f.key]===null) return;
+      valueHtml = f.colored ? badgeHtml(f, e[f.key]) : '<span>'+escapeHtml(String(e[f.key]))+'</span>';
+    }
+    html += '<div class="detail-row"><div class="detail-label">'+f.label+'</div>'+valueHtml+'</div>';
+  });
+
+  const refs = findReferencingEntities(type, id);
+  const refTypes = Object.keys(refs).filter(rt=> !(type==='place' && rt==='poi'));
+
+  if(type==='player'){
+    html += renderXpSection(e);
+  }
+
+  if(type==='place'){
+    const pois = getEntities('poi').filter(p=>p.place===id).sort((a,b)=>a.name.localeCompare(b.name));
+    html += renderPoiSection(id, pois);
+  }
+
+  if(refTypes.length){
+    html += '<div class="rel-block"><h4>Collegamenti</h4>';
+    refTypes.forEach(rt=>{
+      html += '<div class="rel-group"><div class="rel-group-label">'+(ICONS[rt]||'')+' '+SCHEMAS[rt].plural+'</div>'+
+        '<div class="chips">'+refs[rt].map(re=> '<button class="chip" onclick="openDetail(\''+rt+'\',\''+re.id+'\')">'+escapeHtml(re.name)+'</button>').join('')+'</div></div>';
+    });
+    html += '</div>';
+  }
+
+  if(!html.trim()){
+    html = '<p style="color:var(--text-dim)">Nessun dettaglio ancora. Usa la matita in alto per aggiungerne.</p>';
+  }
+  body.innerHTML = html;
+}
+function renderPoiSection(placeId, pois){
+  let h = '<div class="rel-block"><h4>Punti di interesse</h4>';
+  if(pois.length===0){
+    h += '<p style="color:var(--text-dim); font-size:13px; margin-bottom:10px;">Nessun punto di interesse ancora: taverne, negozi, templi e altri scorci del luogo.</p>';
+  } else {
+    h += '<div class="poi-accordion">'+pois.map(p=> poiItemHtml(p)).join('')+'</div>';
+  }
+  h += '<button class="btn btn-sm" onclick="openForm(\'poi\', null, {place:\''+placeId+'\'})">+ Aggiungi punto di interesse</button>';
+  h += '</div>';
+  return h;
+}
+function poiItemHtml(p){
+  const fac = p.faction ? getEntityById('faction', p.faction) : null;
+  const factionChip = fac ? '<div class="chips" style="margin-top:8px;">'+renderChips('faction', [p.faction])+'</div>' : '';
+  const npcChips = (p.npcs && p.npcs.length) ? '<div class="chips" style="margin-top:8px;">'+renderChips('npc', p.npcs)+'</div>' : '';
+  const desc = p.description ? '<div class="detail-text">'+autoLinkText(p.description, p.id)+'</div>' : '<span style="color:var(--text-dim); font-size:13px;">Nessuna descrizione.</span>';
+  return '<div class="poi-item">'+
+    '<div class="poi-head" role="button" tabindex="0" onclick="togglePoi(\''+p.id+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();togglePoi(\''+p.id+'\');}">'+
+      '<span class="poi-head-left"><span class="poi-caret" id="caret_'+p.id+'">▸</span> '+escapeHtml(p.name)+
+        (p.category? ' <span class="tag" style="margin-left:8px;">'+escapeHtml(p.category)+'</span>' : '')+
+        (fac? ' <span class="tag" style="margin-left:6px;">'+ICONS.faction+' '+escapeHtml(fac.name)+'</span>' : '')+
+      '</span>'+
+      '<span class="poi-actions" onclick="event.stopPropagation()">'+
+        '<button class="icon-btn" title="Modifica" onclick="openForm(\'poi\',\''+p.id+'\')">✎</button>'+
+        '<button class="icon-btn" title="Elimina" onclick="deletePoiFromSheet(\''+p.id+'\')">🗑</button>'+
+      '</span>'+
+    '</div>'+
+    '<div class="poi-body" id="poibody_'+p.id+'" style="display:none;">'+desc+factionChip+npcChips+'</div>'+
+  '</div>';
+}
+function toggleImageReveal(key){
+  const el = document.getElementById('imgreveal_'+key);
+  const btn = document.getElementById('revealbtn_'+key);
+  if(!el) return;
+  const isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if(btn) btn.textContent = isOpen ? '🗒️ Mostra scheda statistiche' : '🗒️ Nascondi scheda statistiche';
+}
+function togglePoi(poiId){
+  const bodyEl = document.getElementById('poibody_'+poiId);
+  const caret = document.getElementById('caret_'+poiId);
+  if(!bodyEl) return;
+  const isOpen = bodyEl.style.display !== 'none';
+  bodyEl.style.display = isOpen ? 'none' : 'block';
+  if(caret) caret.textContent = isOpen ? '▸' : '▾';
+}
+function deletePoiFromSheet(poiId){
+  const p = getEntityById('poi', poiId);
+  if(!p) return;
+  if(!confirm('Eliminare "'+p.name+'" definitivamente?')) return;
+  data.poi = getEntities('poi').filter(x=>x.id!==poiId);
+  saveData();
+  renderSheet();
+}
+
+/* ---------------- map ---------------- */
+/* ---------------- map pin styling ---------------- */
+const PLACE_TONE = {
+  'Città':'gold', 'Villaggio':'gold', 'Regione':'moss', 'Dungeon':'wax', 'Rovina':'wax',
+  'Punto di interesse':'slate', 'Altro':'slate'
+};
+const TONE_HEX = { gold:'#c9a24b', moss:'#5c8064', wax:'#a23f3c', slate:'#7c8a9c' };
+function pinTone(place){ return PLACE_TONE[place.category] || 'gold'; }
+function pinSvg(tone){
+  const fill = TONE_HEX[tone] || TONE_HEX.gold;
+  return '<svg class="pin-svg" viewBox="0 0 30 40" width="24" height="32" aria-hidden="true">'+
+    '<path d="M15 1.5C7.3 1.5 1.4 7.6 1.4 15.1c0 9.5 11.7 21.4 13 22.6.3.3.9.3 1.2 0 1.3-1.2 13-13.1 13-22.6C28.6 7.6 22.7 1.5 15 1.5z" fill="'+fill+'" stroke="#1b2330" stroke-width="2" stroke-linejoin="round"/>'+
+    '<circle cx="15" cy="14.8" r="7.2" fill="#1b2330"/>'+
+    '<path d="M15 9.6 L19.4 17.6 L10.6 17.6 Z" fill="#efe6cf"/>'+
+    '</svg>';
+}
+function mapLegendHtml(){
+  const items = [['Città / Villaggio','gold'],['Regione','moss'],['Dungeon / Rovina','wax'],['Altro','slate']];
+  return '<div class="map-legend">'+items.map(it=>
+    '<span class="lg-item"><span class="lg-dot" style="background:'+TONE_HEX[it[1]]+'"></span>'+it[0]+'</span>'
+  ).join('')+'</div>';
+}
+function mapPlaceholderSvg(){
+  return '<svg class="map-placeholder" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">'+
+    '<rect width="800" height="500" fill="#101722"/>'+
+    '<rect width="800" height="500" fill="#16202c"/>'+
+    '<path d="M0 340 Q120 300 230 350 T460 330 T800 360 L800 500 L0 500 Z" fill="#1c2a1f"/>'+
+    '<path d="M0 380 Q150 350 300 390 T650 380 T800 400 L800 500 L0 500 Z" fill="#223324"/>'+
+    '<circle cx="140" cy="120" r="60" fill="#22303f"/>'+
+    '<circle cx="640" cy="90" r="90" fill="#1c2734"/>'+
+    '<path d="M60 260 C160 200 220 260 260 220 C310 170 360 240 420 210 C480 180 520 230 600 200" stroke="#3a5468" stroke-width="4" fill="none" opacity="0.5"/>'+
+    '<g opacity="0.35" stroke="#c9a24b" stroke-width="1">'+
+      '<line x1="0" y1="60" x2="800" y2="60"/><line x1="0" y1="160" x2="800" y2="160"/>'+
+      '<line x1="0" y1="260" x2="800" y2="260"/><line x1="0" y1="360" x2="800" y2="360"/><line x1="0" y1="460" x2="800" y2="460"/>'+
+      '<line x1="100" y1="0" x2="100" y2="500"/><line x1="250" y1="0" x2="250" y2="500"/><line x1="400" y1="0" x2="400" y2="500"/>'+
+      '<line x1="550" y1="0" x2="550" y2="500"/><line x1="700" y1="0" x2="700" y2="500"/>'+
+    '</g>'+
+    '</svg>';
+}
+function renderMap(container){
+  const places = getEntities('place');
+  const placed = places.filter(p=> p.mapX!==undefined && p.mapX!==null);
+  const unplaced = places.filter(p=> p.mapX===undefined || p.mapX===null);
+
+  let html = '<div class="section-head"><div><h2>🗺️ Mappa del mondo</h2><div class="sub">Clicca su un segnalino per aprire un luogo.'+
+    (data.pinsLocked? ' I segnalini sono bloccati: non possono essere trascinati per errore.' : ' Trascina un segnalino per riposizionarlo.')+
+    (data.mapImage? ' Se la mappa è più alta dello spazio visibile, scorri al suo interno.':'')+'</div></div>'+
+    '<div class="map-toolbar">'+
+      '<button class="btn btn-sm" onclick="togglePinsLock()">'+(data.pinsLocked? '🔓 Sblocca segnalini' : '🔒 Blocca segnalini')+'</button>'+
+      '<button class="btn btn-sm" id="mapImgBtn" onclick="document.getElementById(\'mapImgInput\').click()">🖼 Carica immagine mappa</button>'+
+      (data.mapImage? '<button class="btn btn-sm btn-ghost" onclick="removeMapImage()">Rimuovi immagine</button>':'')+
+      '<input type="file" id="mapImgInput" accept="image/*" style="display:none" onchange="uploadMapImage(event)">'+
+    '</div></div>';
+
+  html += mapLegendHtml();
+  html += '<div class="map-shell">';
+  html += '<div class="map-container" id="mapContainer"><div class="map-inner" id="mapInner">';
+  if(data.mapImage){ html += '<img src="'+data.mapImage+'" alt="Mappa del mondo">'; }
+  else { html += mapPlaceholderSvg(); }
+  placed.forEach(p=>{
+    html += '<button class="pin'+((data.pinsLocked||!canEdit)?' locked':'')+'" data-id="'+p.id+'" style="left:'+p.mapX+'%; top:'+p.mapY+'%;" title="'+escapeHtml(p.name)+'">'+
+      '<span class="pin-label">'+escapeHtml(p.name)+'</span>'+pinSvg(pinTone(p))+'</button>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="unplaced-box"><h4>Luoghi senza posizione</h4>';
+  if(unplaced.length===0){
+    html += '<div style="color:var(--text-dim); font-size:12.5px;">Tutti i luoghi sono posizionati sulla mappa.</div>';
+  } else {
+    unplaced.forEach(p=>{
+      html += '<div class="unplaced-item"><span>'+escapeHtml(p.name)+'</span>'+
+        '<button class="btn btn-sm" onclick="startPlacing(\''+p.id+'\')">'+(mapPlacingId===p.id? '👆 Clicca sulla mappa':'📍 Posiziona')+'</button></div>';
+    });
+  }
+  html += '<div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--line);">'+
+    '<button class="btn btn-sm" style="width:100%; justify-content:center;" onclick="openForm(\'place\')">+ Nuovo luogo</button></div>';
+  html += '</div>';
+  html += '</div>';
+
+  if(places.length===0){
+    html = '<div class="section-head"><div><h2>🗺️ Mappa del mondo</h2></div></div>'+
+      '<div class="empty-state"><h3>La mappa è ancora vuota</h3><p>Aggiungi il tuo primo luogo per iniziare a popolare il mondo.</p>'+
+      '<button class="btn btn-primary" onclick="openForm(\'place\')">+ Aggiungi luogo</button></div>';
+  }
+
+  container.innerHTML = html;
+
+  const mc = document.getElementById('mapInner');
+  if(mc){
+    if(mapPlacingId) mc.classList.add('placing'); else mc.classList.remove('placing');
+    mc.addEventListener('click', onMapClick);
+    mc.querySelectorAll('.pin').forEach(pin=>{
+      pin.addEventListener('click', (ev)=>{
+        if(dragState && dragState.moved) { ev.stopPropagation(); return; }
+        ev.stopPropagation();
+        openDetail('place', pin.dataset.id, true);
+      });
+      pin.addEventListener('mousedown', (ev)=> startDrag(ev, pin));
+      pin.addEventListener('touchstart', (ev)=> startDrag(ev, pin), {passive:true});
+    });
+  }
+}
+function togglePinsLock(){
+  data.pinsLocked = !data.pinsLocked;
+  saveData();
+  renderMap(document.getElementById('view'));
+}
+function startPlacing(placeId){
+  mapPlacingId = (mapPlacingId===placeId) ? null : placeId;
+  renderMap(document.getElementById('view'));
+}
+function onMapClick(ev){
+  if(!mapPlacingId) return;
+  const rect = ev.currentTarget.getBoundingClientRect();
+  const x = ((ev.clientX-rect.left)/rect.width)*100;
+  const y = ((ev.clientY-rect.top)/rect.height)*100;
+  const p = getEntityById('place', mapPlacingId);
+  if(p){
+    p.mapX = Math.max(1,Math.min(99,x));
+    p.mapY = Math.max(1,Math.min(99,y));
+    saveData();
+  }
+  mapPlacingId = null;
+  renderMap(document.getElementById('view'));
+}
+function startDrag(ev, pinEl){
+  if(data.pinsLocked || !canEdit) return;
+  ev.stopPropagation();
+  dragState = {id: pinEl.dataset.id, moved:false};
+  const container = document.getElementById('mapInner');
+  function move(mev){
+    const point = mev.touches ? mev.touches[0] : mev;
+    const rect = container.getBoundingClientRect();
+    let x = ((point.clientX-rect.left)/rect.width)*100;
+    let y = ((point.clientY-rect.top)/rect.height)*100;
+    x = Math.max(1,Math.min(99,x)); y = Math.max(1,Math.min(99,y));
+    dragState.moved = true;
+    dragState.x = x; dragState.y = y;
+    pinEl.style.left = x+'%'; pinEl.style.top = y+'%';
+  }
+  function up(){
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', up);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', up);
+    if(dragState && dragState.moved){
+      const p = getEntityById('place', dragState.id);
+      if(p){ p.mapX = dragState.x; p.mapY = dragState.y; saveData(); }
+    }
+    setTimeout(()=>{ dragState = null; }, 0);
+  }
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+  document.addEventListener('touchmove', move, {passive:true});
+  document.addEventListener('touchend', up);
+}
+function uploadMapImage(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    data.mapImage = reader.result;
+    saveData();
+    renderMap(document.getElementById('view'));
+  };
+  reader.readAsDataURL(file);
+}
+function removeMapImage(){
+  if(!confirm('Rimuovere l\'immagine personalizzata della mappa?')) return;
+  data.mapImage = null;
+  saveData();
+  renderMap(document.getElementById('view'));
+}
+function showOnMap(placeId){
+  closeSheet();
+  navigate('map');
+  setTimeout(()=>{
+    const pin = document.querySelector('.pin[data-id="'+placeId+'"]');
+    if(pin){
+      pin.style.transition = 'filter .3s ease';
+      pin.style.filter = 'drop-shadow(0 0 10px var(--gold))';
+      setTimeout(()=>{ pin.style.filter=''; }, 1400);
+      pin.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+  }, 60);
+}
+
+/* ---------------- calendar ---------------- */
+function renderCalWidget(){
+  const c = data.calendar;
+  const monthName = c.months[c.month] || ('Mese '+(c.month+1));
+  document.getElementById('calWidget').innerHTML =
+    '<span>📅 '+c.day+' '+escapeHtml(monthName)+', Anno '+c.year+'</span>'+
+    '<button onclick="advanceCalendar(1)" title="Avanza di 1 giorno">+1g</button>'+
+    '<button onclick="advanceCalendar(7)" title="Avanza di 7 giorni">+7g</button>'+
+    '<button onclick="openCalForm()" title="Modifica calendario">✎</button>';
+}
+function advanceCalendar(days){
+  const c = data.calendar;
+  c.day += days;
+  while(c.day > c.daysPerMonth){
+    c.day -= c.daysPerMonth;
+    c.month += 1;
+    if(c.month >= c.months.length){ c.month = 0; c.year += 1; }
+  }
+  saveData();
+  renderCalWidget();
+}
+function openCalForm(){
+  if(!canEdit) return;
+  const c = data.calendar;
+  document.getElementById('calDay').value = c.day;
+  document.getElementById('calYear').value = c.year;
+  document.getElementById('calDaysPerMonth').value = c.daysPerMonth;
+  document.getElementById('calMonths').value = c.months.join(', ');
+  const sel = document.getElementById('calMonth');
+  sel.innerHTML = c.months.map((m,i)=> '<option value="'+i+'"'+(i===c.month?' selected':'')+'>'+escapeHtml(m)+'</option>').join('');
+  document.getElementById('calOverlay').classList.add('show');
+}
+function closeCalForm(){ document.getElementById('calOverlay').classList.remove('show'); }
+function saveCalForm(){
+  const months = document.getElementById('calMonths').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(months.length===0){ alert('Inserisci almeno un mese.'); return; }
+  const daysPerMonth = Math.max(1, Number(document.getElementById('calDaysPerMonth').value)||30);
+  let month = Number(document.getElementById('calMonth').value)||0;
+  if(month >= months.length) month = 0;
+  data.calendar = {
+    months,
+    daysPerMonth,
+    day: Math.max(1, Math.min(daysPerMonth, Number(document.getElementById('calDay').value)||1)),
+    month,
+    year: Number(document.getElementById('calYear').value)||1
+  };
+  saveData();
+  renderCalWidget();
+  closeCalForm();
+}
+
+/* ---------------- global search ---------------- */
+function initSearch(){
+  const input = document.getElementById('globalSearch');
+  const resBox = document.getElementById('searchResults');
+  input.addEventListener('input', ()=>{
+    const q = input.value.trim().toLowerCase();
+    if(q.length < 2){ resBox.classList.remove('show'); resBox.innerHTML=''; return; }
+    const results = [];
+    Object.keys(SCHEMAS).forEach(t=>{
+      getEntities(t).forEach(e=>{
+        const hay = (e.name||'') + ' ' + Object.values(e).filter(v=>typeof v==='string').join(' ');
+        if(hay.toLowerCase().includes(q)){
+          results.push({type:t, id:e.id, name:e.name});
+        }
+      });
+    });
+    if(results.length===0){
+      resBox.innerHTML = '<div class="search-empty">Nessun risultato per "'+escapeHtml(input.value)+'"</div>';
+    } else {
+      resBox.innerHTML = results.slice(0,30).map(r=>
+        '<button class="sr-item" onclick="selectSearchResult(\''+r.type+'\',\''+r.id+'\')">'+(ICONS[r.type]||'')+' '+escapeHtml(r.name)+'<span class="sr-type">'+SCHEMAS[r.type].label+'</span></button>'
+      ).join('');
+    }
+    resBox.classList.add('show');
+  });
+  document.addEventListener('click', (ev)=>{
+    if(!ev.target.closest('.search-wrap')) resBox.classList.remove('show');
+  });
+}
+function selectSearchResult(type,id){
+  document.getElementById('searchResults').classList.remove('show');
+  document.getElementById('globalSearch').value = '';
+  openDetail(type, id, true);
+}
+
+/* ---------------- title editing ---------------- */
+function initTitle(){
+  const el = document.getElementById('campaignTitle');
+  el.textContent = data.campaignName || 'La Mia Campagna';
+  el.addEventListener('blur', ()=>{
+    if(!canEdit) return;
+    const v = el.textContent.trim() || 'La Mia Campagna';
+    data.campaignName = v;
+    el.textContent = v;
+    saveData();
+  });
+  el.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter'){ ev.preventDefault(); el.blur(); } });
+}
+
+/* ---------------- export / import ---------------- */
+function exportData(){
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (data.campaignName||'campagna').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'campagna';
+  a.href = url;
+  a.download = safeName+'-codex-backup.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importData(ev){
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(){
+    try{
+      const parsed = JSON.parse(reader.result);
+      if(typeof parsed !== 'object' || parsed===null) throw new Error('formato non valido');
+      if(!canEdit){ alert('Attiva prima la modalità modifica.'); ev.target.value=''; return; }
+      if(!confirm('Importare questo file SOSTITUIRÀ i dati condivisi da tutti gli utenti (elementi non presenti nel file inclusi). Continuare?')) { ev.target.value=''; return; }
+      const base = seedDataEmpty();
+      data = Object.assign(base, parsed);
+      Object.keys(SCHEMAS).forEach(t=>{ if(!Array.isArray(data[t])) data[t]=[]; });
+      if(!data.calendar) data.calendar = seedData().calendar;
+      saveData();
+      closeSheet();
+      initTitle();
+      renderCalWidget();
+      navigate('map');
+    }catch(e){
+      alert('Il file selezionato non sembra un backup valido.');
+    }
+    ev.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ---------------- init ---------------- */
+async function init(){
+  initTitle();
+  initSearch();
+  document.getElementById('view').innerHTML = '<div id="loadError"><h3>Caricamento…</h3></div>';
+  try{
+    await loadRemote();
+    loaded = true;
+  }catch(e){
+    console.error(e);
+    setStatus('err', '⚠ Offline');
+    document.getElementById('view').innerHTML =
+      '<div id="loadError"><h3>Impossibile caricare la wiki</h3><p>Controlla la connessione e la configurazione Supabase, poi ricarica la pagina.</p>'+
+      '<p style="font-size:12px;">'+escapeHtml(e.message || String(e))+'</p></div>';
+    return;   // niente modalità modifica: non si deve mai salvare sopra dati non caricati
+  }
+  document.getElementById('campaignTitle').textContent = data.campaignName || 'La Mia Campagna';
+  renderCalWidget();
+  const { data: { session } } = await sb.auth.getSession();
+  setEditMode(!!session);
+  sb.auth.onAuthStateChange((_evt, sess)=> setEditMode(!!sess));
+  subscribeRealtime();
+  navigate('map');
+}
+init();
+</script>
+</body>
+</html>
